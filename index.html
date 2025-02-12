@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chat - Modern & Fun</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, { delimiters: [
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ]});
+        });
+    </script>
     <style>
         body {
             background-color: #f5f5f5;
@@ -12,17 +23,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: 80vh;
             margin: 0;
             color: #333;
             flex-direction: column;
-            padding-bottom: 40px;
+            padding: 20px 0 80px 0;
         }
 
         #chatContainer {
             width: 100%;
             max-width: 600px;
-            height: 80vh;
+            height: calc(100vh - 120px);
             background-color: white;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -126,10 +137,35 @@
             width: 100%;
             text-align: center;
             padding: 10px;
-            font-size: 1.0rem;
+            font-size: .85rem;
             font-family: 'Roboto Slab', serif;
             color: #8e44ad;
             font-weight: 600;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+        }
+
+        @media (max-width: 600px) {
+            #chatContainer {
+                height: calc(100vh - 100px);
+                border-radius: 0;
+            }
+
+            #inputArea {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            textarea {
+                min-height: 50px;
+                padding: 12px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -148,7 +184,7 @@
         </div>
     </div>
     <div id="footer">
-        Designed by Vardhan
+        Designed by Vardan
     </div>
 
     <script>
@@ -156,7 +192,8 @@
             return text
                 .replace(/##(.*?)##/g, '<strong>$1</strong>')
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>');
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
         }
 
         function addMessage(sender, text) {
@@ -166,6 +203,15 @@
             messageDiv.innerHTML = formatResponse(text);
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            setTimeout(() => {
+                renderMathInElement(messageDiv, {
+                    delimiters: [
+                        { left: "\\(", right: "\\)", display: false },
+                        { left: "\\[", right: "\\]", display: true }
+                    ]
+                });
+            }, 0);
         }
 
         async function sendMessage() {
@@ -191,10 +237,10 @@
                 const data = await response.json();
                 loadingElement.style.display = 'none';
 
-                if (data.reply) {
+                if (data.reply && data.reply.trim()) {
                     addMessage('ai', data.reply);
                 } else {
-                    addMessage('ai', 'No response received.');
+                    addMessage('ai', "I didn't quite get that. Can you rephrase?");
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -203,11 +249,16 @@
             }
         }
 
-        document.getElementById('message').addEventListener('keypress', function (e) {
+        document.getElementById('message').addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
+        });
+
+        document.getElementById('message').addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
         });
     </script>
 </body>
